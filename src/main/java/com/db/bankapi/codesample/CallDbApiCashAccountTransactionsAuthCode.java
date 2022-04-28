@@ -59,8 +59,8 @@ public class CallDbApiCashAccountTransactionsAuthCode {
         CallDbApiCashAccountTransactionsAuthCode callDbApiCashAccount = new CallDbApiCashAccountTransactionsAuthCode();
 
         //Please login to activate your test user to get your fkn and pin
-        String fkn = "Your FKN from on of your testusers";
-        String pin = "Your PIN from one of your testusers";
+        String fkn = "100100642000";
+        String pin = "80812";
 
         //Step 1
         Response response = callDbApiCashAccount.authorizationRequest();
@@ -74,11 +74,9 @@ public class CallDbApiCashAccountTransactionsAuthCode {
         //Step 3.2
         response = callDbApiCashAccount.grantAccess(response);
 
-        //Step 4
-        //What you have to do here?
 
-        //Step 5
-        //What you have to do here?
+        response = callDbApiCashAccount.getAccessTokenFromCode(callDbApiCashAccount.getCode(response));
+
 
         String responseWithAccessToken  = response.readEntity(String.class);
         JsonObject jsonObject = JsonParser.parseString(responseWithAccessToken).getAsJsonObject();
@@ -111,9 +109,9 @@ public class CallDbApiCashAccountTransactionsAuthCode {
 
         //Please login to activate your client. The client_id and redirect_uri will be replaced with your activated client.
         Response response = wt.property(ClientProperties.FOLLOW_REDIRECTS, false)
-                .queryParam("response_type", "has to be replaced with correct setting")
-                .queryParam("client_id", "8b2030b0-7d64-4d89-bee8-c59fc071e778")
-                .queryParam("redirect_uri", "Your redirect URI from your app")
+                .queryParam("response_type", "code")
+                .queryParam("client_id", "98fd5c9a-3cd8-4b55-9111-a79bd50fe7da")
+                .queryParam("redirect_uri", "https://localhost:8080")
                 .queryParam("scope", "read_transactions")
                 .queryParam("state", "0.21581183640296075")
                 .request()
@@ -257,8 +255,8 @@ public class CallDbApiCashAccountTransactionsAuthCode {
      * @return The {@link Response} which contains the access token (bearer) in JSON format
      */
     private Response getAccessTokenFromCode(String code) {
-        HttpAuthenticationFeature auth = HttpAuthenticationFeature.basic("client_id"
-                , "client_secret");
+        HttpAuthenticationFeature auth = HttpAuthenticationFeature.basic("98fd5c9a-3cd8-4b55-9111-a79bd50fe7da"
+                , "AM81Ov6iA4zZELT235PVd-CGZ8lYdC4b6aMF2HK2CnUCRb6j9_Zuk-odIK5s8x13riDcW-cMny9vMkB0BYjpKxc");
         return requestAccessTokensFromCode(code, auth);
     }
 
@@ -270,19 +268,17 @@ public class CallDbApiCashAccountTransactionsAuthCode {
      * @throws IOException
      */
     protected Response requestAccessTokensFromCode(String code, HttpAuthenticationFeature auth) {
-        //TODO 1 Create a new Form object with the following form params:
-        // grant_type -> authorization_code
-        // code -> code
-        // redirect_uri -> Your redirect URI from your app
+        Form form = new Form();
+        form.param("grant_type", "authorization_code");
+        form.param("code", code);
+        form.param("redirect_uri", "https://localhost:8080");
 
-        //TODO 2 Execute a POST request with the ClientBuilder.newClient() and set the following properties to this client to execute the request.
-        //TODO 3 In the POST put the form as Entity.entity(form,MediaType.APPLICATION_FORM_URLENCODED_TYPE) so that the form params get's transmitted to the request
-        //target -> https://simulator-api.db.com/gw/oidc/token
-        //register -> auth
-        //property -> ClientProperties.FOLLOW_REDIRECTS, false
-        //request
-        //post()
-
+        Response response = ClientBuilder.newClient()
+                .target("https://simulator-api.db.com/gw/oidc/token")
+                .register(auth)
+                .property(ClientProperties.FOLLOW_REDIRECTS, false)
+                .request()
+                .post(Entity.entity(form, MediaType.APPLICATION_FORM_URLENCODED_TYPE));
 
         updateSessionId(response);
         return response;
@@ -300,7 +296,7 @@ public class CallDbApiCashAccountTransactionsAuthCode {
         WebTarget wt = ClientBuilder.newBuilder()
                 .build()
                 .target("https://simulator-api.db.com/gw/dbapi/banking/transactions/v2")
-                .queryParam("iban", "DE10010000000000008695");
+                .queryParam("iban", "DE10010000000000009222");
 
         Response response = wt.request()
                 .header("Authorization", "Bearer " + accessToken)
